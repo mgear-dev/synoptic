@@ -1,9 +1,13 @@
+# python
 import traceback
 
-import maya.OpenMayaUI as OpenMayaUI
-import mgear
+# dcc
 import pymel.core as pm
-from mgear.vendor.Qt import QtCore, QtWidgets, QtGui, QtCompat
+
+# mgear
+import mgear
+from mgear.vendor.Qt import QtCore, QtWidgets, QtGui
+from mgear.core import callbackManager
 
 from .. import widgets, utils
 
@@ -86,12 +90,10 @@ class MainSynopticTab(QtWidgets.QDialog):
         # script job callback
         # ptr = long(QtCompat.getCppPointer(self)[0])
         # ptr = long(QtCompat.getCppPointer(self))
-        ptr = QtCompat.getCppPointer(self)
+        # ptr = QtCompat.getCppPointer(self)
 
-        gui = OpenMayaUI.MQtUtil.fullName(ptr)
-        self.selJob = pm.scriptJob(e=("SelectionChanged",
-                                      self.selectChanged),
-                                   parent=gui)
+        self.cbManager = callbackManager.CallbackManager()
+        self.cbManager.selectionChangedCB("SynopticTab", self.selectChanged)
 
     def selectChanged(self, *args):
         # wrap to catch exception guaranteeing core does not stop at this
@@ -105,8 +107,11 @@ class MainSynopticTab(QtWidgets.QDialog):
 
             mes = "{0}\n{1}".format(mes, e)
             mgear.log(mes, mgear.sev_error)
-            pm.scriptJob(kill=self.selJob)
-            self.close()
+            self.cbManager.removeAllManagedCB()
+            try:
+                self.close()
+            except RuntimeError:
+                pass
 
     def __selectChanged(self, *args):
 

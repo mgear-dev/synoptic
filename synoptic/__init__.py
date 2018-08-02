@@ -64,6 +64,24 @@ class Synoptic(MayaQWidgetDockableMixin, QtWidgets.QDialog):
         self.create_widgets()
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
 
+    def closeEvent(self, evnt):
+        """oon close, kill all callbacks
+
+        Args:
+            evnt (Qt.QEvent): Close event called
+        """
+
+        # self.cbManager.removeAllManagedCB()
+        for i in range(self.tabs.count()):
+            tab = self.tabs.widget(i)
+            if isinstance(tab, SynopticTabWrapper):
+                synTab, resultBool = tab.searchMainSynopticTab()
+                if resultBool and hasattr(synTab, "cbManager"):
+                    synTab.cbManager.removeAllManagedCB()
+            tab.close()
+        self.tabs.clear()
+        super(Synoptic, self).closeEvent(evnt)
+
     def create_widgets(self):
         self.setupUi()
 
@@ -193,16 +211,13 @@ class Synoptic(MayaQWidgetDockableMixin, QtWidgets.QDialog):
     def updateTabs(self):
 
         for i in range(self.tabs.count()):
-            self.tabs.widget(i).close()
+            tab = self.tabs.widget(i)
+            if isinstance(tab, SynopticTabWrapper):
+                synTab, resultBool = tab.searchMainSynopticTab()
+                if resultBool and hasattr(synTab, "cbManager"):
+                    synTab.cbManager.removeAllManagedCB()
+            tab.close()
         self.tabs.clear()
-
-        # safety clean of  synoticTab script jobs
-        # this is neded when we switch models witout close synopticwindow.
-        oldJobs = pm.scriptJob(listJobs=True)
-        for oldjob in oldJobs:
-            if "SynopticTab" in str(oldjob):
-                id = oldjob.split(" ")[0][:-1]
-                pm.scriptJob(kill=int(id), force=True)
 
         currentModelName = self.model_list.currentText()
         currentModels = pm.ls(currentModelName)

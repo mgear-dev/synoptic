@@ -93,7 +93,6 @@ class MainSynopticTab(QtWidgets.QDialog):
         # ptr = QtCompat.getCppPointer(self)
 
         self.cbManager = callbackManager.CallbackManager()
-        self.cbManager.selectionChangedCB("SynopticTab", self.selectChanged)
 
     def selectChanged(self, *args):
         # wrap to catch exception guaranteeing core does not stop at this

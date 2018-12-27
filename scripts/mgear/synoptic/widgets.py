@@ -1,7 +1,9 @@
+
+import re
 from mgear.vendor.Qt import QtCore, QtWidgets, QtGui
 
 from . import utils
-
+from maya.app.general.nodeEditorMenus import _createTextureUtilityMenuItems
 
 ##################################################
 # PROMOTED WIDGETS
@@ -300,9 +302,144 @@ class SelectButton(QtWidgets.QWidget):
         painter.drawPath(path)
 
 
+class SelectButtonStyleSheet(QtWidgets.QFrame):
+    def __init__(self, parent=None):
+        """ This class allows you to charge a QFrame widget on your picker
+        that will maintain the StyleSheet compatibility coming form your UI
+        file.
+        """
+        super(SelectButtonStyleSheet, self).__init__(parent)
+
+    def __get_background_color(self, control, stylesheet):
+        """ Returns the background color for the given control on the
+        style sheet provided
+        """
+
+        current_style = ""
+
+        for i in stylesheet:
+            if i.count(control) and not i.count("disabled"):
+                current_style += i
+
+        return re.findall(r"\S+[a-z][-][a-z].+\W;", current_style)
+
+    def __create_new_style(self, control_object, control_style, paint):
+        """ Generates a simple qt style sheet update for the given control.
+        This needs to be done to force the Maya control selection give the
+        effect of the button been hovered.
+        """
+
+        # gets overall style sheet
+        style_sheet = self.parent().styleSheet()
+        widgets_styles = style_sheet.split("\n\n")
+        new_style = ""
+
+        # handles # type style sheet
+        if style_sheet.count(control_object):
+            bg_color, hover_color = self.__get_background_color(control_object,
+                                                                widgets_styles)
+
+            for i in widgets_styles:
+                if i.count(control_object) and paint and not i.count("hover"):
+                    new_style = "QWidget#%s{\n    %s\n}" % (control_object,
+                                                            hover_color)
+                elif i.count(control_object) and not paint:
+                    new_style = "QWidget#%s{\n    %s\n}" % (control_object,
+                                                            bg_color)
+                    new_style += "QWidget#%s:hover{\n    %s\n}" % (
+                        control_object, hover_color)
+
+        # handles property type style sheet
+        elif style_sheet.count(control_style):
+            bg_color, hover_color = self.__get_background_color(control_style,
+                                                                widgets_styles)
+
+            for i in widgets_styles:
+                if i.count(control_style) and paint and not i.count("hover"):
+                    new_style = "QWidget[control_style=%s]{\n    %s\n}" % (
+                        control_style, hover_color)
+
+                elif i.count(control_style) and not paint:
+                    new_style = "QWidget[control_style=%s]{\n    %s\n}" % (
+                        control_style, bg_color)
+                    new_style += "QWidget[control_style=%s]:hover{\n    %s\n}"\
+                                 % (control_style, hover_color)
+
+        return new_style
+
+    def enterEvent(self, event):
+        if not self.isEnabled():
+            return
+        point = QtGui.QCursor.pos()
+        point.setX(point.x() + 10)
+        point.setY(point.y() - 20)
+        QtWidgets.QToolTip.showText(point, str(self.property("object")))
+        self.repaint()
+        self.update()
+
+    def leaveEvent(self, event):
+        self.repaint()
+        self.update()
+
+    def rectangleSelection(self, event, firstLoop):
+        if not self.isEnabled():
+            return
+
+        if firstLoop:
+            key_modifier = event.modifiers()
+        else:
+            if event.modifiers():
+                key_modifier = event.modifiers()
+            else:
+                key_modifier = (QtCore.Qt.ControlModifier
+                                | QtCore.Qt.ShiftModifier)
+        model = utils.getModel(self)
+        control_object = str(self.property("object")).split(",")
+
+        mouse_button = event.button()
+
+        utils.selectObj(model, control_object, mouse_button, key_modifier)
+
+    def mousePressEvent(self, event):
+        if not self.isEnabled():
+            return
+
+        model = utils.getModel(self)
+        control_object = str(self.property("object")).split(",")
+        mouse_button = event.button()
+        key_modifier = event.modifiers()
+
+        utils.selectObj(model, control_object, mouse_button, key_modifier)
+
+    def paintSelected(self, paint=False):
+        """ This method is responsible of been able to have the hover state
+        been activated when the control is selected on Maya's viewport
+        """
+        if not self.isEnabled():
+            return
+        # get control name and control_style properties from the widget
+        control_object = str(self.property("object")).split(",")[0]
+        control_style = str(self.property("control_style")).split(",")[0]
+
+        # gets new style sheet
+        try:
+            new_style = self.__create_new_style(control_object,
+                                                control_style,
+                                                paint)
+            self.setStyleSheet(new_style)
+        except Exception as error:
+            print("Something is wrong with your current stylesheet. Contact"
+                  "mGear development team with the following error... ")
+            raise error
+
+
 ##############################################################################
 # Classes for Mixin Color
 ##############################################################################
+class SelectBtn_StyleSheet(SelectButtonStyleSheet):
+    pass
+
+
 class SelectBtn_RFk(SelectButton):
     color = QtGui.QColor(0, 0, 192, 255)
 
@@ -342,6 +479,10 @@ class SelectBtn_darkGreen(SelectButton):
 ##############################################################################
 # Classes for Mixin Drawing Shape
 ##############################################################################
+class SelectBtn_StyleSheet_Draw(SelectButtonStyleSheet):
+    pass
+
+
 class SelectBtn_Box(SelectButton):
 
     def drawShape(self, painter):
@@ -509,6 +650,7 @@ def _boilSelector(selectorName, color, shape):
 
 SELECTORS = {
     # "selector button name":       [ColorClass,          DrawingClass],
+    "SelectBtn_StyleSheet": [SelectBtn_StyleSheet, SelectBtn_StyleSheet_Draw],
     "SelectBtn_RFkBox": [SelectBtn_RFk, SelectBtn_Box],
     "SelectBtn_RIkBox": [SelectBtn_RIk, SelectBtn_Box],
     "SelectBtn_CFkBox": [SelectBtn_CFk, SelectBtn_Box],
@@ -563,7 +705,6 @@ SELECTORS = {
     "SelectBtn_greenTriangleRight": [SelectBtn_green, SelectBtn_TriangleRight],
     "SelectBtn_greenTriangleLeft": [SelectBtn_green, SelectBtn_TriangleLeft]
 }
-
 
 for name, mixins in SELECTORS.items():
     klass = _boilSelector(name, mixins[0], mixins[1])

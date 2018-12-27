@@ -132,7 +132,13 @@ class MainSynopticTab(QtWidgets.QDialog):
         nameSpace = utils.getNamespace(oModel.name())
 
         selButtons = self.findChildren(widgets.SelectButton)
-        for selB in selButtons:
+        selButtonsStyled = self.findChildren(widgets.SelectButtonStyleSheet)
+
+        buttons = []
+        buttons.extend(selButtons)
+        buttons.extend(selButtonsStyled)
+
+        for selB in buttons:
             obj = str(selB.property("object")).split(",")
             if len(obj) == 1:
                 if nameSpace:
@@ -179,7 +185,15 @@ class MainSynopticTab(QtWidgets.QDialog):
 
         selected = []
         rect = QtCore.QRect(self.origin, event.pos()).normalized()
-        for child in self.findChildren(widgets.SelectButton):
+
+        selButtons = self.findChildren(widgets.SelectButton)
+        selButtonsStyled = self.findChildren(widgets.SelectButtonStyleSheet)
+
+        buttons = []
+        buttons.extend(selButtons)
+        buttons.extend(selButtonsStyled)
+
+        for child in buttons:
             # if rect.intersects(child.geometry()):
             if rect.intersects(self._getButtonAbsoluteGeometry(child)):
                 selected.append(child)

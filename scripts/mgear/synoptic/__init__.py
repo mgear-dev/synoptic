@@ -350,7 +350,7 @@ class SynopticTabWrapper(QtWidgets.QWidget):
 
         else:
             mes = "synoptic tab not found"
-            mgear.log(mes, mgear.sev_warn)
+            mgear.log(mes, mgear.sev_warning)
             return None, False
 
     def calculateOffset(self):

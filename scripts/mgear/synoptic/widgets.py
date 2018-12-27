@@ -3,12 +3,12 @@ import re
 from mgear.vendor.Qt import QtCore, QtWidgets, QtGui
 
 from . import utils
-from maya.app.general.nodeEditorMenus import _createTextureUtilityMenuItems
 
 ##################################################
 # PROMOTED WIDGETS
 ##################################################
 # They must be declared first because they are used in the widget.ui
+
 
 class toggleCombo(QtWidgets.QComboBox):
 

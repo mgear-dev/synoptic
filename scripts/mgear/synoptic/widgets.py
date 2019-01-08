@@ -318,9 +318,10 @@ class SelectButtonStyleSheet(QtWidgets.QFrame):
         current_style = ""
 
         for i in stylesheet:
-            if i.count(control) and not i.count("disabled"):
+            if (re.findall("\control_style={}".format(control), i) and
+                not i.count("disabled") or re.findall("\#{}".format(
+                    control), i) and not i.count("disabled")):
                 current_style += i
-
         return re.findall(r"\S+[a-z][-][a-z].+\W;", current_style)
 
     def __create_new_style(self, control_object, control_style, paint):
@@ -341,12 +342,12 @@ class SelectButtonStyleSheet(QtWidgets.QFrame):
 
             for i in widgets_styles:
                 if i.count(control_object) and paint and not i.count("hover"):
-                    new_style = "QWidget#%s{\n    %s\n}" % (control_object,
-                                                            hover_color)
+                    new_style = "QFrame#%s{\n    %s\n}" % (control_object,
+                                                           hover_color)
                 elif i.count(control_object) and not paint:
-                    new_style = "QWidget#%s{\n    %s\n}" % (control_object,
-                                                            bg_color)
-                    new_style += "QWidget#%s:hover{\n    %s\n}" % (
+                    new_style = "QFrame#%s{\n    %s\n}" % (control_object,
+                                                           bg_color)
+                    new_style += "QFrame#%s:hover{\n    %s\n}" % (
                         control_object, hover_color)
 
         # handles property type style sheet
@@ -356,13 +357,13 @@ class SelectButtonStyleSheet(QtWidgets.QFrame):
 
             for i in widgets_styles:
                 if i.count(control_style) and paint and not i.count("hover"):
-                    new_style = "QWidget[control_style=%s]{\n    %s\n}" % (
+                    new_style = "QFrame[control_style=%s]{\n    %s\n}" % (
                         control_style, hover_color)
 
                 elif i.count(control_style) and not paint:
-                    new_style = "QWidget[control_style=%s]{\n    %s\n}" % (
+                    new_style = "QFrame[control_style=%s]{\n    %s\n}" % (
                         control_style, bg_color)
-                    new_style += "QWidget[control_style=%s]:hover{\n    %s\n}"\
+                    new_style += "QFrame[control_style=%s]:hover{\n    %s\n}"\
                                  % (control_style, hover_color)
 
         return new_style
@@ -428,9 +429,10 @@ class SelectButtonStyleSheet(QtWidgets.QFrame):
                                                 paint)
             self.setStyleSheet(new_style)
         except Exception as error:
-            print("Something is wrong with your current stylesheet. Contact"
-                  "mGear development team with the following error... ")
-            raise error
+            message = "Something is wrong with your current style-sheet." \
+                      "Contact mGear development team with the following" \
+                      " error... "
+            raise error(message)
 
 
 ##############################################################################

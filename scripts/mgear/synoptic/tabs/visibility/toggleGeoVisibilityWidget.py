@@ -1,3 +1,4 @@
+
 from functools import partial
 
 import maya.cmds as mc
@@ -134,8 +135,9 @@ class ToggleGeoVisibility(QtWidgets.QWidget):
         self.modelControls = []
         self.gui()
         self.connectSignals()
-        # self.setInfomation()
-        # self.refresh()
+
+    def showEvent(self, event):
+        self.refresh()
 
     def colorItemBasedOnAttr(self, item):
         """Color the widgetitem based on the state of the visibility control
@@ -171,7 +173,6 @@ class ToggleGeoVisibility(QtWidgets.QWidget):
             model (string): name of the model
         """
         # self.model = model
-        print utils.getModel(self)
         self.model = utils.getModel(self).name()
         self.nameSpace = utils.getNamespace(utils.getModel(self))
         # self.refresh()
@@ -188,7 +189,6 @@ class ToggleGeoVisibility(QtWidgets.QWidget):
         self.unHideSelectedButton.clicked.connect(self.unHideSelected)
         self.unHideAllButton.clicked.connect(self.unHideAll)
         self.selectButton.clicked.connect(self.specificSelection)
-        self.refreshButton.clicked.connect(self.refresh)
 
     def displayResults(self, resultsToDisplay):
         """clear and display the provided list
@@ -369,6 +369,8 @@ class ToggleGeoVisibility(QtWidgets.QWidget):
         #  -------------------------------------------------------------------
         bodyLayout = QtWidgets.QHBoxLayout()
         self.resultWidget = QtWidgets.QListWidget()
+        self.resultWidget.setSpacing(4)
+        self.resultWidget.setAlternatingRowColors(True)
         selMode = QtWidgets.QAbstractItemView.ExtendedSelection
         self.resultWidget.setSelectionMode(selMode)
 
@@ -389,14 +391,12 @@ class ToggleGeoVisibility(QtWidgets.QWidget):
         self.unHideSelectedButton.setStyleSheet(greenColor)
         self.unHideAllButton = QtWidgets.QPushButton('Unhide ALL')
         self.selectButton = QtWidgets.QPushButton('Select highlighted')
-        self.refreshButton = QtWidgets.QPushButton('Refresh')
         #  -------------------------------------------------------------------
         optionsLayout.addLayout(filterLayout)
         optionsLayout.addWidget(self.hideSelectedButton)
         optionsLayout.addWidget(self.unHideSelectedButton)
         optionsLayout.addWidget(self.unHideAllButton)
         optionsLayout.addWidget(self.selectButton)
-        optionsLayout.addWidget(self.refreshButton)
         bodyLayout.addWidget(self.resultWidget)
         bodyLayout.addLayout(optionsLayout)
         self.mainLayout.addLayout(bodyLayout)

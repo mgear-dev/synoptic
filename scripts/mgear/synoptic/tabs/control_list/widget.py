@@ -1,5 +1,8 @@
 import mgear.core.pyqt as gqt
+from searchControlsWidget import ControlListerUI
+
 QtGui, QtCore, QtWidgets, wrapInstance = gqt.qt_import()
+
 
 class Ui_baker(object):
     def setupUi(self, baker):
@@ -13,7 +16,9 @@ class Ui_baker(object):
         self.widget = ControlListerUI(baker)
         self.widget.setObjectName("widget")
         self.verticalLayout.addWidget(self.widget)
-        spacerItem = QtWidgets.QSpacerItem(20, 40, QtWidgets.QSizePolicy.Minimum, QtWidgets.QSizePolicy.Expanding)
+        spacerItem = QtWidgets.QSpacerItem(20, 40,
+                                           QtWidgets.QSizePolicy.Minimum,
+                                           QtWidgets.QSizePolicy.Expanding)
         self.verticalLayout.addItem(spacerItem)
         self.gridLayout.addLayout(self.verticalLayout, 0, 0, 1, 1)
 
@@ -22,5 +27,3 @@ class Ui_baker(object):
 
     def retranslateUi(self, baker):
         baker.setWindowTitle(gqt.fakeTranslate("baker", "Form", None, -1))
-
-from mgear.synoptic.searchControlsWidget import ControlListerUI

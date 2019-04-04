@@ -22,7 +22,7 @@ class toggleCombo(QtWidgets.QComboBox):
         event.ignore()
 
     # def focusInEvent(self, event):
-    def enterEvent(self, event):
+    def showEvent(self, event):
         self.model = utils.getModel(self)
         self.uihost_name = str(self.property("Object"))
         self.combo_attr = str(self.property("Attr"))

@@ -1,7 +1,7 @@
-import maya.cmds as mc
-from mgear.vendor.Qt import QtWidgets
 
-from . import utils
+from maya import cmds
+from mgear.vendor.Qt import QtWidgets
+from mgear.synoptic import utils
 
 
 def getControlsFromSets(desiredSet, listToPopulate):
@@ -11,8 +11,8 @@ def getControlsFromSets(desiredSet, listToPopulate):
         desiredSet (string): name of set to crawl
         listToPopulate (list): where to append found nodes
     """
-    for child in mc.sets(desiredSet, q=True):
-        if mc.nodeType(child) == "objectSet":
+    for child in cmds.sets(desiredSet, q=True):
+        if cmds.nodeType(child) == "objectSet":
             getControlsFromSets(child, listToPopulate)
         else:
             listToPopulate.append(child)
@@ -71,7 +71,6 @@ class ControlListerUI(QtWidgets.QWidget):
         self.namespace = None
         self.gui()
         self.connectSignals()
-        # self.refresh()
 
     def connectSignals(self):
         """connect widgets/signals to the functions
@@ -79,7 +78,6 @@ class ControlListerUI(QtWidgets.QWidget):
         self.searchLineEdit.textChanged.connect(self.queryNames)
         self.resultWidget.itemSelectionChanged.connect(self.specificSelection)
         self.selectAllButton.clicked.connect(self.selectAllResults)
-        self.refreshButton.clicked.connect(self.refresh)
 
     def displayResults(self, resultsToDisplay):
         """clear and display the provided list
@@ -126,7 +124,7 @@ class ControlListerUI(QtWidgets.QWidget):
         """
         setControls = []
         controlerSet = "{0}{1}".format(self.model, utils.CTRL_GRP_SUFFIX)
-        if mc.objExists(controlerSet):
+        if cmds.objExists(controlerSet):
             getControlsFromSets(controlerSet, setControls)
         baseControlNames = set(getBaseNames(setControls))
         self.modelControls = list(baseControlNames)
@@ -146,15 +144,13 @@ class ControlListerUI(QtWidgets.QWidget):
         selectionList = []
         for item in self.resultWidget.selectedItems():
             selectionList.append(self.getNodeWithNameSpace(item.text()))
-        mc.select(selectionList)
+        cmds.select(selectionList)
 
     def refresh(self):
         """refresh the ui
         """
         self.model = utils.getModel(self)
         self.namespace = utils.getNamespace(self.model)
-        print self.namespace
-        print self.model
         self.searchLineEdit.clear()
         self.resultWidget.clear()
         self.setControlsToQuery()
@@ -168,18 +164,17 @@ class ControlListerUI(QtWidgets.QWidget):
         #  -------------------------------------------------------------------
         self.searchLineEdit = QtWidgets.QLineEdit()
         self.searchLineEdit.setPlaceholderText("Filter via ',' seperated...")
+        self.selectAllButton = QtWidgets.QPushButton('Select All')
         self.mainLayout.addWidget(self.searchLineEdit)
+        self.mainLayout.addWidget(self.selectAllButton)
         #  -------------------------------------------------------------------
-        bodyLayout = QtWidgets.QHBoxLayout()
         self.resultWidget = QtWidgets.QListWidget()
+        self.resultWidget.setSpacing(4)
+        self.resultWidget.setAlternatingRowColors(True)
         selMode = QtWidgets.QAbstractItemView.ExtendedSelection
         self.resultWidget.setSelectionMode(selMode)
 
-        optionsLayout = QtWidgets.QVBoxLayout()
-        self.selectAllButton = QtWidgets.QPushButton('Select All')
-        optionsLayout.addWidget(self.selectAllButton)
-        self.refreshButton = QtWidgets.QPushButton('Refresh')
-        optionsLayout.addWidget(self.refreshButton)
-        bodyLayout.addWidget(self.resultWidget)
-        bodyLayout.addLayout(optionsLayout)
-        self.mainLayout.addLayout(bodyLayout)
+        self.mainLayout.addWidget(self.resultWidget)
+
+    def showEvent(self, event):  # @UnusedVariable
+        self.refresh()

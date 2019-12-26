@@ -1044,7 +1044,11 @@ class AbstractAnimationTransfer(QtWidgets.QDialog):
         self.comboBoxSpaces = QtWidgets.QComboBox()
         self.comboBoxSpaces.addItems(self.comboItems)
         if self.comboObj is not None:
-            self.comboBoxSpaces.setCurrentIndex(self.comboObj.currentIndex())
+            try:
+                self.comboBoxSpaces.setCurrentIndex(self.comboObj.currentIndex())
+            except TypeError:
+                # this add suport QlistWidget
+                self.comboBoxSpaces.setCurrentIndex(self.comboObj.currentRow())
 
         self.spaceTransfer_button = QtWidgets.QPushButton("Space Transfer")
 
@@ -1103,7 +1107,11 @@ class AbstractAnimationTransfer(QtWidgets.QDialog):
 
         del self.comboItems[:]
         for i in range(combo.count() - 1):
-            self.comboItems.append(combo.itemText(i))
+            try:
+                self.comboItems.append(combo.itemText(i))
+            except AttributeError:
+                # this add suport QlistWidget
+                self.comboItems.append(combo.item(i).text())
 
     def setComboBoxItemsFormList(self, comboList):
         # type: (list[str]) -> None

@@ -1183,7 +1183,9 @@ class AbstractAnimationTransfer(QtWidgets.QDialog):
 
         # set the new space value in the synoptic combobox
         if self.comboObj is not None:
-            self.comboObj.setCurrentIndex(self.comboBoxSpaces.currentIndex())
+            if isinstance(self.comboObj, QtWidgets.QComboBox):
+                self.comboObj.setCurrentIndex(
+                    self.comboBoxSpaces.currentIndex())
 
         for c in pyqt.maya_main_window().children():
             if isinstance(c, AbstractAnimationTransfer):

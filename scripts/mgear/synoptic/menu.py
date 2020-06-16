@@ -1,6 +1,5 @@
 import pymel.core as pm
 import mgear
-from mgear import synoptic
 
 
 def install():
@@ -8,4 +7,10 @@ def install():
     """
     pm.setParent(mgear.menu_id, menu=True)
     pm.menuItem(divider=True)
-    pm.menuItem(label="Synoptic", command=synoptic.open)
+    pm.menuItem(label="Synoptic", command=str_open_synoptic)
+
+
+str_open_synoptic = """
+from mgear import synoptic
+synoptic.open()
+"""
